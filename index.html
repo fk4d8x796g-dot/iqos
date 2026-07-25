@@ -983,7 +983,7 @@
             ${stat("Сегодня", `${data.today.length}/${data.targetPerDay}`)}
             ${stat("Раньше времени", data.earlyToday)}
             ${stat("Средний интервал", formatMinutes(avgGap(data.today)))}
-            ${stat("Экономия", formatMoney(data.daySavings))}
+            ${stat("Возможная экономия", formatMoney(data.daySavings))}
           </div>
           <div class="chart-card">
             <div class="chart-head"><div><h3>Ритм дня</h3><p style="color:var(--muted);font-size:12px;margin-top:4px">Отметки по часам</p></div><span class="chip">${monthName(data.date)}</span></div>
@@ -1018,7 +1018,7 @@
             ${stat("За месяц", data.month.length)}
             ${stat("Среднее в день", avgPerDay.toFixed(1))}
             ${stat("Средний интервал", formatMinutes(avgGap(data.month)))}
-            ${stat("Экономия", formatMoney(data.monthSavings))}
+            ${stat("Возможная экономия", formatMoney(data.monthSavings))}
           </div>
           <div class="calendar-card">
             <div class="chart-head"><div><h3 style="text-transform:capitalize">${monthName(data.date)} ${data.date.getFullYear()}</h3><p style="color:var(--muted);font-size:12px;margin-top:4px">Лучший день: ${best ? `${best[0]} число, ${best[1]} шт.` : "нет данных"}</p></div><span class="chip" style="background:#efe3d3;color:#4f463d">календарь</span></div>
@@ -1044,7 +1044,7 @@
         }).join("");
         return `
           <div class="year-card" style="margin-bottom:12px">
-            <div class="chart-head"><div><p class="eyebrow" style="color:#9a8875">год</p><h3 style="font-size:32px">${year}</h3></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;text-align:right"><div><p style="color:var(--muted);font-size:12px">всего</p><strong style="font-size:22px">${entries.length}</strong></div><div><p style="color:var(--muted);font-size:12px">экономия</p><strong style="font-size:22px">${formatMoney(entries.length * (state.packPrice > 0 ? state.packPrice / STICKS_PER_PACK : 0))}</strong></div></div></div>
+            <div class="chart-head"><div><p class="eyebrow" style="color:#9a8875">год</p><h3 style="font-size:32px">${year}</h3></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;text-align:right"><div><p style="color:var(--muted);font-size:12px">всего</p><strong style="font-size:22px">${entries.length}</strong></div><div><p style="color:var(--muted);font-size:12px">возможная экономия</p><strong style="font-size:22px">${formatMoney(entries.length * (state.packPrice > 0 ? state.packPrice / STICKS_PER_PACK : 0))}</strong></div></div></div>
             <div class="bar-chart" style="height:112px">${bars}</div>
             <p style="color:var(--muted);font-size:14px;margin-top:14px">Самый активный месяц: ${entries.length ? monthName(new Date(year, bestMonth, 1)) : "нет данных"}.</p>
           </div>`;
