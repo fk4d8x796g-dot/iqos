@@ -1,0 +1,1177 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Stick Control">
+  <meta name="theme-color" content="#15120f">
+  <title>Stick Control</title>
+  <style>
+    :root {
+      --ink: #171512;
+      --paper: #f5ead9;
+      --card: rgba(255, 250, 241, 0.9);
+      --line: #eadcca;
+      --muted: #7c6d5e;
+      --gold: #d5a84d;
+      --green: #1f5138;
+      --dark: #15120f;
+      --white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--dark);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 18% 0%, rgba(213, 168, 77, 0.24), transparent 34%),
+        radial-gradient(circle at 86% 18%, rgba(31, 81, 56, 0.22), transparent 30%),
+        linear-gradient(180deg, #18130e 0%, #f3eadb 43%, #eee2cf 100%);
+    }
+
+    button,
+    input {
+      font: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+    }
+
+    .app {
+      margin: 0 auto;
+      max-width: 1180px;
+      min-height: 100vh;
+      padding: max(20px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));
+    }
+
+    .topbar {
+      align-items: center;
+      color: white;
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      margin: 0;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(32px, 8vw, 54px);
+      letter-spacing: -0.04em;
+      line-height: 0.95;
+      margin-top: 6px;
+    }
+
+    .today-badge {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+      min-width: 86px;
+      padding: 10px 14px;
+      text-align: right;
+    }
+
+    .today-badge span {
+      color: rgba(255, 255, 255, 0.58);
+      display: block;
+      font-size: 12px;
+    }
+
+    .today-badge strong {
+      color: white;
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+      margin-top: 4px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    @media (min-width: 980px) {
+      .grid {
+        grid-template-columns: 0.9fr 1.1fr;
+      }
+    }
+
+    .hero {
+      background: var(--dark);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 34px;
+      box-shadow: 0 34px 90px rgba(0, 0, 0, 0.34);
+      color: white;
+      padding: 22px;
+    }
+
+    .timer-wrap {
+      align-items: center;
+      display: grid;
+      gap: 24px;
+      justify-items: center;
+    }
+
+    @media (min-width: 620px) and (max-width: 979px), (min-width: 1220px) {
+      .timer-wrap {
+        grid-template-columns: 250px 1fr;
+        justify-items: stretch;
+      }
+    }
+
+    .ring {
+      display: grid;
+      height: 242px;
+      place-items: center;
+      position: relative;
+      width: 242px;
+    }
+
+    .ring svg {
+      filter: drop-shadow(0 22px 32px rgba(0, 0, 0, 0.3));
+      height: 100%;
+      transform: rotate(-90deg);
+      width: 100%;
+    }
+
+    .ring-center {
+      align-items: center;
+      display: flex;
+      flex-direction: column;
+      inset: 0;
+      justify-content: center;
+      position: absolute;
+      text-align: center;
+    }
+
+    .ring-center small {
+      color: rgba(255, 255, 255, 0.46);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .clock {
+      color: white;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 52px;
+      font-weight: 950;
+      letter-spacing: -0.06em;
+      margin-top: 8px;
+    }
+
+    .limit {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      color: rgba(255, 255, 255, 0.62);
+      font-size: 12px;
+      font-weight: 800;
+      margin-top: 12px;
+      padding: 6px 12px;
+    }
+
+    .hero-copy h2 {
+      color: white;
+      font-size: clamp(28px, 6vw, 42px);
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    .hero-copy p {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 16px;
+      line-height: 1.55;
+      margin-top: 14px;
+    }
+
+    .actions,
+    .stats-row,
+    .quick {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .actions,
+    .stats-row {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .quick {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .price-row {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 520px) {
+      .price-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .primary,
+    .secondary,
+    .ghost {
+      border-radius: 18px;
+      font-weight: 950;
+      min-height: 54px;
+      padding: 0 14px;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+    }
+
+    .primary:active,
+    .secondary:active,
+    .ghost:active,
+    .tab:active {
+      transform: scale(0.98);
+    }
+
+    .primary {
+      background: var(--gold);
+      box-shadow: 0 18px 45px rgba(213, 168, 77, 0.28);
+      color: var(--ink);
+    }
+
+    .primary:disabled {
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: none;
+      color: rgba(255, 255, 255, 0.36);
+    }
+
+    .secondary {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      color: white;
+    }
+
+    .secondary:disabled {
+      opacity: 0.35;
+    }
+
+    .dark-stat {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .dark-stat span,
+    .stat span {
+      color: rgba(255, 255, 255, 0.5);
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .dark-stat strong,
+    .stat strong {
+      display: block;
+      font-size: 26px;
+      font-weight: 950;
+      line-height: 1;
+      margin-top: 8px;
+    }
+
+    .panel {
+      background: rgba(248, 239, 224, 0.93);
+      border: 1px solid var(--line);
+      border-radius: 34px;
+      box-shadow: 0 30px 90px rgba(33, 25, 16, 0.2);
+      padding: 18px;
+    }
+
+    .panel-head {
+      align-items: center;
+      display: flex;
+      gap: 14px;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .panel-head h2 {
+      font-size: 26px;
+      letter-spacing: -0.03em;
+    }
+
+    .tabs {
+      background: #fffaf1;
+      border: 1px solid #e3d3bf;
+      border-radius: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      padding: 4px;
+    }
+
+    .tab {
+      background: transparent;
+      border-radius: 14px;
+      color: #6d6255;
+      font-size: 14px;
+      font-weight: 950;
+      height: 40px;
+      padding: 0 12px;
+    }
+
+    .tab.active {
+      background: var(--ink);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+      color: white;
+    }
+
+    .stat-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stat {
+      background: rgba(255, 250, 241, 0.9);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 14px 40px rgba(58, 44, 27, 0.08);
+      padding: 14px;
+    }
+
+    .stat span {
+      color: var(--muted);
+    }
+
+    .chart-card,
+    .calendar-card,
+    .year-card,
+    .control-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: 0 14px 40px rgba(58, 44, 27, 0.08);
+      padding: 16px;
+    }
+
+    .chart-head {
+      align-items: flex-start;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .chip {
+      background: var(--green);
+      border-radius: 999px;
+      color: white;
+      font-size: 12px;
+      font-weight: 900;
+      padding: 6px 10px;
+      white-space: nowrap;
+    }
+
+    .bar-chart {
+      align-items: end;
+      display: grid;
+      gap: 5px;
+      grid-template-columns: repeat(12, 1fr);
+      height: 142px;
+    }
+
+    .bar-col {
+      align-items: center;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      height: 100%;
+      justify-content: flex-end;
+      min-width: 0;
+    }
+
+    .bar {
+      background: var(--gold);
+      border-radius: 999px;
+      min-height: 8px;
+      width: 100%;
+    }
+
+    .bar.green {
+      background: var(--green);
+    }
+
+    .bar-label {
+      color: #8c7a67;
+      font-size: 10px;
+      font-weight: 800;
+      height: 12px;
+    }
+
+    .stats-layout {
+      display: grid;
+      gap: 12px;
+    }
+
+    @media (min-width: 760px) {
+      .stats-layout {
+        grid-template-columns: 0.86fr 1.14fr;
+      }
+    }
+
+    .calendar {
+      display: grid;
+      gap: 6px;
+      grid-template-columns: repeat(7, 1fr);
+      margin-top: 12px;
+    }
+
+    .week {
+      color: #9a8875;
+      font-size: 10px;
+      font-weight: 950;
+      text-align: center;
+    }
+
+    .day {
+      aspect-ratio: 1;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      color: #4c4238;
+      font-size: 11px;
+      font-weight: 900;
+      position: relative;
+    }
+
+    .day.blank {
+      border-color: transparent;
+    }
+
+    .day b {
+      left: 7px;
+      position: absolute;
+      top: 5px;
+    }
+
+    .day span {
+      bottom: 5px;
+      position: absolute;
+      right: 7px;
+    }
+
+    .control-grid {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    @media (min-width: 820px) {
+      .control-grid {
+        grid-template-columns: 0.82fr 1.18fr;
+      }
+    }
+
+    .control-head {
+      align-items: center;
+      display: flex;
+      gap: 14px;
+      justify-content: space-between;
+    }
+
+    .interval-badge {
+      background: var(--green);
+      border-radius: 18px;
+      color: white;
+      display: grid;
+      font-size: 22px;
+      font-weight: 950;
+      height: 58px;
+      place-items: center;
+      width: 58px;
+    }
+
+    input[type="range"] {
+      accent-color: var(--green);
+      margin-top: 22px;
+      width: 100%;
+    }
+
+    .ghost {
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid #e3d3bf;
+      color: #4f463d;
+      min-height: 46px;
+    }
+
+    .price-input {
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid #e3d3bf;
+      border-radius: 18px;
+      color: #4f463d;
+      font-size: 18px;
+      font-weight: 900;
+      min-height: 46px;
+      min-width: 0;
+      outline: none;
+      padding: 0 14px;
+      width: 100%;
+    }
+
+    .price-input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(31, 81, 56, 0.12);
+    }
+
+    .saving-grid {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(3, 1fr);
+      margin-top: 12px;
+    }
+
+    .saving {
+      background: rgba(255, 255, 255, 0.58);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .saving span {
+      color: var(--muted);
+      display: block;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .saving strong {
+      color: #4f463d;
+      display: block;
+      font-size: 16px;
+      font-weight: 950;
+      margin-top: 6px;
+      white-space: nowrap;
+    }
+
+    .journal {
+      display: grid;
+      gap: 8px;
+      max-height: 210px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .journal-item {
+      align-items: center;
+      background: rgba(255, 255, 255, 0.58);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 14px;
+    }
+
+    .journal-item strong {
+      font-size: 14px;
+    }
+
+    .journal-item time {
+      color: #6d6255;
+      font-size: 14px;
+      font-weight: 750;
+    }
+
+    .notice {
+      background: #fffaf1;
+      border: 1px solid #d8c5a7;
+      border-radius: 18px;
+      box-shadow: 0 16px 48px rgba(58, 44, 27, 0.1);
+      color: #4f463d;
+      display: none;
+      font-size: 14px;
+      font-weight: 850;
+      margin-top: 12px;
+      padding: 12px 14px;
+    }
+
+    .notice.show {
+      display: block;
+    }
+
+    .reset {
+      background: rgba(255, 250, 241, 0.72);
+      border: 1px solid #d7c6b1;
+      border-radius: 18px;
+      color: #6d6255;
+      font-size: 14px;
+      font-weight: 950;
+      height: 48px;
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    .empty {
+      align-items: center;
+      background: rgba(255, 255, 255, 0.58);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      color: var(--muted);
+      display: flex;
+      font-size: 14px;
+      font-weight: 800;
+      justify-content: center;
+      min-height: 86px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Stick Control</p>
+        <h1>Личный контроль</h1>
+      </div>
+      <div class="today-badge">
+        <span>сегодня</span>
+        <strong data-today-count>0</strong>
+      </div>
+    </header>
+
+    <section class="grid">
+      <div class="hero">
+        <div class="timer-wrap">
+          <div class="ring">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+              <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="7"></circle>
+              <circle data-progress cx="50" cy="50" r="45" fill="none" stroke="#d5a84d" stroke-linecap="round" stroke-width="7"></circle>
+            </svg>
+            <div class="ring-center">
+              <small data-status-label>готово</small>
+              <div class="clock" data-clock>00:00</div>
+              <div class="limit" data-limit>лимит 24 в день</div>
+            </div>
+          </div>
+
+          <div class="hero-copy">
+            <h2 data-headline>Можно отметить следующий стик.</h2>
+            <p>Отмечай каждый стик, а приложение само удержит интервал и соберет статистику по дням, месяцам и годам.</p>
+            <div class="actions">
+              <button class="primary" data-mark>Выкурил(а)</button>
+              <button class="secondary" data-early>Выкурил(а) раньше</button>
+            </div>
+            <div class="stats-row">
+              <div class="dark-stat"><span>месяц</span><strong data-month-total>0</strong></div>
+              <div class="dark-stat"><span>год</span><strong data-year-total>0</strong></div>
+            </div>
+            <div class="dark-stat" style="margin-top:10px"><span>всего в журнале</span><strong data-all-total>0</strong></div>
+            <div class="dark-stat" style="margin-top:10px"><span>мог(ла) бы сэкономить</span><strong data-savings-total>0 ₽</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow" style="color:#9a8875">статистика</p>
+              <h2>День, месяц, годы</h2>
+            </div>
+            <div class="tabs">
+              <button class="tab active" data-tab="day">День</button>
+              <button class="tab" data-tab="month">Месяц</button>
+              <button class="tab" data-tab="years">Годы</button>
+            </div>
+          </div>
+          <div data-stats></div>
+        </div>
+
+        <div class="control-grid">
+          <div class="control-card">
+            <div class="control-head">
+              <div>
+                <h3>Интервал</h3>
+                <p style="color:var(--muted);font-size:14px;margin-top:4px"><span data-interval-text>60</span> минут между стиками</p>
+              </div>
+              <div class="interval-badge" data-interval-badge>60</div>
+            </div>
+            <input aria-label="Интервал в минутах" data-interval max="120" min="30" step="5" type="range" value="60">
+            <div class="quick">
+              <button class="ghost" data-quick="45">45</button>
+              <button class="ghost" data-quick="60">60</button>
+              <button class="ghost" data-quick="90">90</button>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <div class="control-head">
+              <div>
+                <h3>Стоимость пачки</h3>
+                <p style="color:var(--muted);font-size:14px;margin-top:4px"><span data-pack-price-text>не задана</span></p>
+              </div>
+            </div>
+            <div class="price-row">
+              <input class="price-input" aria-label="Стоимость пачки" data-pack-price inputmode="decimal" min="0" placeholder="₽ за пачку" step="1" type="number">
+              <button class="ghost" data-save-price>Стоимость пачки</button>
+            </div>
+            <div class="saving-grid">
+              <div class="saving"><span>день</span><strong data-day-savings>0 ₽</strong></div>
+              <div class="saving"><span>месяц</span><strong data-month-savings>0 ₽</strong></div>
+              <div class="saving"><span>год</span><strong data-year-savings>0 ₽</strong></div>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <div class="control-head" style="margin-bottom:14px">
+              <div>
+                <h3>Последние отметки</h3>
+                <p style="color:var(--muted);font-size:14px;margin-top:4px">Журнал хранится на этом устройстве</p>
+              </div>
+              <button class="ghost" style="min-height:40px" data-notify>Уведомления</button>
+            </div>
+            <div class="journal" data-journal></div>
+          </div>
+        </div>
+
+        <div class="notice" data-notice></div>
+        <button class="reset" data-reset>Сбросить данные</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "stick-control-state-v1";
+    const MAX_LOG_ITEMS = 5000;
+    const STICKS_PER_PACK = 20;
+    const state = readState();
+    let now = Date.now();
+    let view = "day";
+    let notifiedFor = null;
+
+    const els = {
+      todayCount: document.querySelector("[data-today-count]"),
+      progress: document.querySelector("[data-progress]"),
+      clock: document.querySelector("[data-clock]"),
+      statusLabel: document.querySelector("[data-status-label]"),
+      headline: document.querySelector("[data-headline]"),
+      limit: document.querySelector("[data-limit]"),
+      mark: document.querySelector("[data-mark]"),
+      early: document.querySelector("[data-early]"),
+      monthTotal: document.querySelector("[data-month-total]"),
+      yearTotal: document.querySelector("[data-year-total]"),
+      allTotal: document.querySelector("[data-all-total]"),
+      savingsTotal: document.querySelector("[data-savings-total]"),
+      interval: document.querySelector("[data-interval]"),
+      intervalText: document.querySelector("[data-interval-text]"),
+      intervalBadge: document.querySelector("[data-interval-badge]"),
+      packPrice: document.querySelector("[data-pack-price]"),
+      packPriceText: document.querySelector("[data-pack-price-text]"),
+      savePrice: document.querySelector("[data-save-price]"),
+      daySavings: document.querySelector("[data-day-savings]"),
+      monthSavings: document.querySelector("[data-month-savings]"),
+      yearSavings: document.querySelector("[data-year-savings]"),
+      stats: document.querySelector("[data-stats]"),
+      journal: document.querySelector("[data-journal]"),
+      notice: document.querySelector("[data-notice]")
+    };
+
+    const circumference = 2 * Math.PI * 45;
+    els.progress.setAttribute("stroke-dasharray", String(circumference));
+
+    function readState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { intervalMinutes: 60, packPrice: 0, lastUsedAt: null, log: [] };
+        const parsed = JSON.parse(raw);
+        const log = Array.isArray(parsed.log)
+          ? parsed.log
+              .filter((entry) => entry && typeof entry.id === "string" && typeof entry.at === "number")
+              .map((entry) => ({ id: entry.id, at: entry.at, early: entry.early === true }))
+              .sort((a, b) => b.at - a.at)
+              .slice(0, MAX_LOG_ITEMS)
+          : [];
+        return {
+          intervalMinutes: clamp(parsed.intervalMinutes || 60),
+          packPrice: normalizePrice(parsed.packPrice),
+          lastUsedAt: typeof parsed.lastUsedAt === "number" ? parsed.lastUsedAt : (log[0] ? log[0].at : null),
+          log
+        };
+      } catch {
+        return { intervalMinutes: 60, packPrice: 0, lastUsedAt: null, log: [] };
+      }
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function clamp(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return 60;
+      return Math.min(240, Math.max(15, Math.round(number)));
+    }
+
+    function normalizePrice(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number) || number < 0) return 0;
+      return Math.round(number * 100) / 100;
+    }
+
+    function pad(value) {
+      return String(value).padStart(2, "0");
+    }
+
+    function dayKey(date) {
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+    function monthKey(date) {
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
+    }
+
+    function yearKey(date) {
+      return String(date.getFullYear());
+    }
+
+    function sameDay(timestamp, date) {
+      return dayKey(new Date(timestamp)) === dayKey(date);
+    }
+
+    function sameMonth(timestamp, date) {
+      return monthKey(new Date(timestamp)) === monthKey(date);
+    }
+
+    function sameYear(timestamp, date) {
+      return yearKey(new Date(timestamp)) === yearKey(date);
+    }
+
+    function daysInMonth(date) {
+      return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    }
+
+    function formatClock(ms) {
+      const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${pad(minutes)}:${pad(seconds)}`;
+    }
+
+    function formatTime(timestamp) {
+      return new Intl.DateTimeFormat("ru-RU", { hour: "2-digit", minute: "2-digit" }).format(new Date(timestamp));
+    }
+
+    function formatDate(timestamp) {
+      return new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(timestamp));
+    }
+
+    function monthName(date, kind = "long") {
+      return new Intl.DateTimeFormat("ru-RU", { month: kind }).format(date);
+    }
+
+    function formatMinutes(value) {
+      if (value === null || !Number.isFinite(value)) return "нет данных";
+      if (value < 60) return `${Math.round(value)} мин`;
+      const hours = Math.floor(value / 60);
+      const minutes = Math.round(value % 60);
+      return minutes ? `${hours} ч ${minutes} мин` : `${hours} ч`;
+    }
+
+    function formatMoney(value) {
+      return new Intl.NumberFormat("ru-RU", {
+        currency: "RUB",
+        maximumFractionDigits: value >= 100 ? 0 : 2,
+        minimumFractionDigits: 0,
+        style: "currency"
+      }).format(value);
+    }
+
+    function avgGap(entries) {
+      if (entries.length < 2) return null;
+      const asc = [...entries].sort((a, b) => a.at - b.at);
+      let total = 0;
+      for (let i = 1; i < asc.length; i += 1) total += asc[i].at - asc[i - 1].at;
+      return total / (asc.length - 1) / 60000;
+    }
+
+    function countBy(entries, getKey) {
+      const map = new Map();
+      for (const entry of entries) {
+        const key = getKey(new Date(entry.at));
+        map.set(key, (map.get(key) || 0) + 1);
+      }
+      return map;
+    }
+
+    function getData() {
+      const date = new Date(now);
+      const sorted = [...state.log].sort((a, b) => b.at - a.at);
+      const today = sorted.filter((entry) => sameDay(entry.at, date));
+      const month = sorted.filter((entry) => sameMonth(entry.at, date));
+      const year = sorted.filter((entry) => sameYear(entry.at, date));
+      const earlyToday = today.filter((entry) => entry.early).length;
+      const earlyMonth = month.filter((entry) => entry.early).length;
+      const unlockAt = state.lastUsedAt ? state.lastUsedAt + state.intervalMinutes * 60000 : null;
+      const remainingMs = unlockAt ? Math.max(0, unlockAt - now) : 0;
+      const ready = !unlockAt || remainingMs <= 0;
+      const targetPerDay = Math.floor(1440 / state.intervalMinutes);
+      const pricePerStick = state.packPrice > 0 ? state.packPrice / STICKS_PER_PACK : 0;
+      const daySavings = today.length * pricePerStick;
+      const monthSavings = month.length * pricePerStick;
+      const yearSavings = year.length * pricePerStick;
+      const totalSavings = sorted.length * pricePerStick;
+      return { date, sorted, today, month, year, earlyToday, earlyMonth, unlockAt, remainingMs, ready, targetPerDay, daySavings, monthSavings, yearSavings, totalSavings };
+    }
+
+    function stat(label, value) {
+      return `<div class="stat"><span>${label}</span><strong>${value}</strong></div>`;
+    }
+
+    function renderDay(data) {
+      const hourCounts = countBy(data.today, (date) => date.getHours());
+      const maxHour = Math.max(1, ...hourCounts.values());
+      const bars = Array.from({ length: 24 }, (_, hour) => {
+        const count = hourCounts.get(hour) || 0;
+        const height = Math.max(8, (count / maxHour) * 100);
+        const label = hour % 4 === 0 ? hour : "";
+        return `<div class="bar-col"><div class="bar" style="height:${height}%;opacity:${count ? 1 : 0.18}" title="${hour}:00 - ${count}"></div><div class="bar-label">${label}</div></div>`;
+      }).join("");
+      els.stats.innerHTML = `
+        <div class="stats-layout">
+          <div class="stat-grid">
+            ${stat("Сегодня", `${data.today.length}/${data.targetPerDay}`)}
+            ${stat("Раньше времени", data.earlyToday)}
+            ${stat("Средний интервал", formatMinutes(avgGap(data.today)))}
+            ${stat("Экономия", formatMoney(data.daySavings))}
+          </div>
+          <div class="chart-card">
+            <div class="chart-head"><div><h3>Ритм дня</h3><p style="color:var(--muted);font-size:12px;margin-top:4px">Отметки по часам</p></div><span class="chip">${monthName(data.date)}</span></div>
+            <div class="bar-chart">${bars}</div>
+          </div>
+        </div>`;
+    }
+
+    function renderMonth(data) {
+      const dayCounts = countBy(data.month, (date) => date.getDate());
+      const monthDays = daysInMonth(data.date);
+      const firstDay = new Date(data.date.getFullYear(), data.date.getMonth(), 1);
+      const startOffset = (firstDay.getDay() + 6) % 7;
+      const maxDay = Math.max(1, ...dayCounts.values());
+      const elapsedDays = data.date.getDate();
+      const avgPerDay = data.month.length / Math.max(1, elapsedDays);
+      const dayLimitOk = Array.from({ length: elapsedDays }, (_, index) => index + 1)
+        .filter((day) => (dayCounts.get(day) || 0) <= data.targetPerDay).length;
+      const best = Array.from(dayCounts.entries()).sort((a, b) => b[1] - a[1])[0];
+      const weeks = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => `<div class="week">${day}</div>`).join("");
+      const blanks = Array.from({ length: startOffset }, (_, index) => `<div class="day blank" data-empty="${index}"></div>`).join("");
+      const days = Array.from({ length: monthDays }, (_, index) => {
+        const day = index + 1;
+        const count = dayCounts.get(day) || 0;
+        const strength = count / maxDay;
+        const bg = count ? `rgba(213, 168, 77, ${0.22 + strength * 0.58})` : "rgba(255,250,241,0.86)";
+        return `<div class="day" style="background:${bg}"><b>${day}</b>${count ? `<span>${count}</span>` : ""}</div>`;
+      }).join("");
+      els.stats.innerHTML = `
+        <div class="stats-layout">
+          <div class="stat-grid">
+            ${stat("За месяц", data.month.length)}
+            ${stat("Среднее в день", avgPerDay.toFixed(1))}
+            ${stat("Средний интервал", formatMinutes(avgGap(data.month)))}
+            ${stat("Экономия", formatMoney(data.monthSavings))}
+          </div>
+          <div class="calendar-card">
+            <div class="chart-head"><div><h3 style="text-transform:capitalize">${monthName(data.date)} ${data.date.getFullYear()}</h3><p style="color:var(--muted);font-size:12px;margin-top:4px">Лучший день: ${best ? `${best[0]} число, ${best[1]} шт.` : "нет данных"}</p></div><span class="chip" style="background:#efe3d3;color:#4f463d">календарь</span></div>
+            <div class="calendar">${weeks}${blanks}${days}</div>
+          </div>
+        </div>`;
+    }
+
+    function renderYears(data) {
+      const years = [...new Set(data.sorted.map((entry) => new Date(entry.at).getFullYear()))];
+      if (!years.includes(data.date.getFullYear())) years.push(data.date.getFullYear());
+      years.sort((a, b) => b - a);
+      els.stats.innerHTML = years.map((year) => {
+        const entries = data.sorted.filter((entry) => new Date(entry.at).getFullYear() === year);
+        const monthly = Array.from({ length: 12 }, (_, index) => entries.filter((entry) => new Date(entry.at).getMonth() === index).length);
+        const maxMonth = Math.max(1, ...monthly);
+        const activeMonths = monthly.filter(Boolean).length || 1;
+        const bestMonth = monthly.indexOf(Math.max(...monthly));
+        const bars = monthly.map((count, index) => {
+          const height = Math.max(8, (count / maxMonth) * 100);
+          const label = monthName(new Date(year, index, 1), "short").replace(".", "");
+          return `<div class="bar-col"><div class="bar green" style="height:${height}%;opacity:${count ? 0.95 : 0.16}" title="${label}: ${count}"></div><div class="bar-label">${label}</div></div>`;
+        }).join("");
+        return `
+          <div class="year-card" style="margin-bottom:12px">
+            <div class="chart-head"><div><p class="eyebrow" style="color:#9a8875">год</p><h3 style="font-size:32px">${year}</h3></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;text-align:right"><div><p style="color:var(--muted);font-size:12px">всего</p><strong style="font-size:22px">${entries.length}</strong></div><div><p style="color:var(--muted);font-size:12px">экономия</p><strong style="font-size:22px">${formatMoney(entries.length * (state.packPrice > 0 ? state.packPrice / STICKS_PER_PACK : 0))}</strong></div></div></div>
+            <div class="bar-chart" style="height:112px">${bars}</div>
+            <p style="color:var(--muted);font-size:14px;margin-top:14px">Самый активный месяц: ${entries.length ? monthName(new Date(year, bestMonth, 1)) : "нет данных"}.</p>
+          </div>`;
+      }).join("");
+    }
+
+    function renderJournal(data) {
+      els.journal.innerHTML = data.sorted.length
+        ? data.sorted.slice(0, 8).map((entry, index) => `<div class="journal-item"><strong>#${data.sorted.length - index}${entry.early ? ' <span style="border-radius:999px;background:#f0d7a4;color:#6d4a13;font-size:10px;letter-spacing:.12em;padding:3px 7px;text-transform:uppercase">раньше</span>' : ""}</strong><time>${formatDate(entry.at)}</time></div>`).join("")
+        : `<div class="empty">Пока нет отметок.</div>`;
+    }
+
+    function showNotice(text) {
+      els.notice.textContent = text;
+      els.notice.classList.add("show");
+    }
+
+    function render() {
+      now = Date.now();
+      const data = getData();
+      const progress = data.unlockAt && state.lastUsedAt
+        ? Math.min(1, Math.max(0, (now - state.lastUsedAt) / (data.unlockAt - state.lastUsedAt)))
+        : 1;
+
+      els.todayCount.textContent = data.today.length;
+      els.clock.textContent = data.ready ? "00:00" : formatClock(data.remainingMs);
+      els.statusLabel.textContent = data.ready ? "готово" : "осталось";
+      els.headline.textContent = data.ready ? "Можно отметить следующий стик." : `Следующий после ${formatTime(data.unlockAt)}.`;
+      els.limit.textContent = `лимит ${data.targetPerDay} в день`;
+      els.progress.setAttribute("stroke-dashoffset", String(circumference * (1 - progress)));
+      els.progress.setAttribute("stroke", data.ready ? "#92d5a6" : "#d5a84d");
+      els.mark.disabled = !data.ready;
+      els.early.disabled = data.ready;
+      els.monthTotal.textContent = data.month.length;
+      els.yearTotal.textContent = data.year.length;
+      els.allTotal.textContent = data.sorted.length;
+      els.savingsTotal.textContent = formatMoney(data.totalSavings);
+      els.interval.value = state.intervalMinutes;
+      els.intervalText.textContent = state.intervalMinutes;
+      els.intervalBadge.textContent = state.intervalMinutes;
+      if (document.activeElement !== els.packPrice) {
+        els.packPrice.value = state.packPrice ? String(state.packPrice) : "";
+      }
+      els.packPriceText.textContent = state.packPrice ? `${formatMoney(state.packPrice)} за ${STICKS_PER_PACK} шт.` : "не задана";
+      els.daySavings.textContent = formatMoney(data.daySavings);
+      els.monthSavings.textContent = formatMoney(data.monthSavings);
+      els.yearSavings.textContent = formatMoney(data.yearSavings);
+
+      document.querySelectorAll("[data-tab]").forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === view));
+      if (view === "day") renderDay(data);
+      if (view === "month") renderMonth(data);
+      if (view === "years") renderYears(data);
+      renderJournal(data);
+
+      if (data.unlockAt && data.remainingMs <= 0 && notifiedFor !== data.unlockAt) {
+        notifiedFor = data.unlockAt;
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification("Можно следующий стик", { body: "Прошел выбранный интервал.", tag: "stick-control-ready" });
+        }
+        if ("vibrate" in navigator) navigator.vibrate([120, 80, 120]);
+      }
+    }
+
+    function recordStick(early) {
+      const timestamp = Date.now();
+      const entry = { id: `${timestamp}-${Math.random().toString(36).slice(2)}`, at: timestamp, early };
+      notifiedFor = null;
+      state.lastUsedAt = timestamp;
+      state.log = [entry, ...state.log].sort((a, b) => b.at - a.at).slice(0, MAX_LOG_ITEMS);
+      save();
+      showNotice(early ? `Ранняя отметка в ${formatTime(timestamp)}. Новый отсчет уже запущен.` : `Зафиксировано в ${formatTime(timestamp)}. Следующий через ${state.intervalMinutes} мин.`);
+      render();
+    }
+
+    els.mark.addEventListener("click", () => {
+      recordStick(false);
+    });
+
+    els.early.addEventListener("click", () => {
+      recordStick(true);
+    });
+
+    els.interval.addEventListener("input", (event) => {
+      state.intervalMinutes = clamp(event.target.value);
+      save();
+      render();
+    });
+
+    document.querySelectorAll("[data-quick]").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.intervalMinutes = clamp(button.dataset.quick);
+        save();
+        render();
+      });
+    });
+
+    els.savePrice.addEventListener("click", () => {
+      state.packPrice = normalizePrice(els.packPrice.value);
+      save();
+      showNotice(state.packPrice ? `Стоимость пачки сохранена: ${formatMoney(state.packPrice)}.` : "Стоимость пачки очищена.");
+      render();
+    });
+
+    els.packPrice.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        els.savePrice.click();
+      }
+    });
+
+    document.querySelectorAll("[data-tab]").forEach((button) => {
+      button.addEventListener("click", () => {
+        view = button.dataset.tab;
+        render();
+      });
+    });
+
+    document.querySelector("[data-notify]").addEventListener("click", async () => {
+      if (!("Notification" in window)) {
+        showNotice("Этот браузер не поддерживает уведомления.");
+        return;
+      }
+      const permission = await Notification.requestPermission();
+      showNotice(permission === "granted" ? "Уведомления включены." : "Уведомления не включены.");
+    });
+
+    document.querySelector("[data-reset]").addEventListener("click", () => {
+      if (!confirm("Сбросить таймер и весь журнал?")) return;
+      state.intervalMinutes = 60;
+      state.lastUsedAt = null;
+      state.log = [];
+      save();
+      showNotice("Все сброшено.");
+      render();
+    });
+
+    render();
+    setInterval(render, 1000);
+  </script>
+</body>
+</html>
