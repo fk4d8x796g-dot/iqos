@@ -1,0 +1,24 @@
+{
+  "name": "Stick Control",
+  "short_name": "Stick",
+  "description": "Таймер и статистика стиков",
+  "start_url": "/iqos/",
+  "scope": "/iqos/",
+  "display": "standalone",
+  "background_color": "#15120f",
+  "theme_color": "#15120f",
+  "icons": [
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

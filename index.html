@@ -7,7 +7,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Stick Control">
   <meta name="theme-color" content="#15120f">
-  <meta name="app-version" content="icon-1">
+  <meta name="app-version" content="push-1">
+  <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
   <title>Stick Control</title>
@@ -775,12 +776,14 @@
 
   <script>
     const STORAGE_KEY = "stick-control-state-v1";
+    const API_BASE = location.hostname.endsWith("github.io") ? "https://grabovsky.ru/iqos/api" : "/iqos/api";
     const MAX_LOG_ITEMS = 5000;
     const STICKS_PER_PACK = 20;
     const state = readState();
     let now = Date.now();
     let view = "day";
     let notifiedFor = null;
+    let pushSubscription = null;
 
     const els = {
       todayCount: document.querySelector("[data-today-count]"),
@@ -928,6 +931,107 @@
         minimumFractionDigits: 0,
         style: "currency"
       }).format(value);
+    }
+
+    function urlBase64ToUint8Array(base64String) {
+      const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+      const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+      const rawData = atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; i += 1) outputArray[i] = rawData.charCodeAt(i);
+      return outputArray;
+    }
+
+    function getUnlockAt() {
+      return state.lastUsedAt ? state.lastUsedAt + state.intervalMinutes * 60000 : null;
+    }
+
+    async function getPushRegistration() {
+      if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+        return null;
+      }
+      if (!window.isSecureContext) return null;
+      return navigator.serviceWorker.register("service-worker.js");
+    }
+
+    async function ensurePushSubscription(askPermission) {
+      const registration = await getPushRegistration();
+      if (!registration) {
+        if (askPermission) showNotice("Push-уведомления доступны только в установленном приложении по HTTPS.");
+        return null;
+      }
+
+      let permission = Notification.permission;
+      if (permission === "default" && askPermission) permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        if (askPermission) showNotice("Уведомления не включены.");
+        return null;
+      }
+
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        const keyResponse = await fetch(`${API_BASE}/vapid-public-key`, { cache: "no-store" });
+        if (!keyResponse.ok) throw new Error("Не удалось получить ключ уведомлений");
+        const { publicKey } = await keyResponse.json();
+        subscription = await registration.pushManager.subscribe({
+          applicationServerKey: urlBase64ToUint8Array(publicKey),
+          userVisibleOnly: true
+        });
+      }
+
+      pushSubscription = subscription;
+      await fetch(`${API_BASE}/subscribe`, {
+        body: JSON.stringify({ subscription }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST"
+      });
+      return subscription;
+    }
+
+    async function sendTestPush(subscription) {
+      await fetch(`${API_BASE}/test`, {
+        body: JSON.stringify({ subscription }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST"
+      });
+    }
+
+    async function scheduleServerPush(unlockAt) {
+      if (!unlockAt || unlockAt <= Date.now()) return;
+      try {
+        const subscription = pushSubscription || await ensurePushSubscription(false);
+        if (!subscription) return;
+        await fetch(`${API_BASE}/schedule`, {
+          body: JSON.stringify({ intervalMinutes: state.intervalMinutes, subscription, unlockAt }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST"
+        });
+      } catch {
+        // Таймер продолжает работать даже если сервер push временно недоступен.
+      }
+    }
+
+    async function enableNotifications() {
+      try {
+        const subscription = await ensurePushSubscription(true);
+        if (!subscription) return;
+        await scheduleServerPush(getUnlockAt());
+        await sendTestPush(subscription);
+        showNotice("Уведомления включены. Тест отправлен.");
+      } catch {
+        showNotice("Не удалось включить уведомления. Открой приложение с экрана Домой и попробуй еще раз.");
+      }
+    }
+
+    async function warmUpPush() {
+      try {
+        if ("Notification" in window && Notification.permission === "granted") {
+          await ensurePushSubscription(false);
+          await scheduleServerPush(getUnlockAt());
+        }
+      } catch {
+        // Тихий запуск, чтобы не мешать основному интерфейсу.
+      }
     }
 
     function avgGap(entries) {
@@ -1120,6 +1224,7 @@
       save();
       showNotice(early ? `Ранняя отметка в ${formatTime(timestamp)}. Новый отсчет уже запущен.` : `Зафиксировано в ${formatTime(timestamp)}. Следующий через ${state.intervalMinutes} мин.`);
       render();
+      scheduleServerPush(timestamp + state.intervalMinutes * 60000);
     }
 
     els.mark.addEventListener("click", () => {
@@ -1134,6 +1239,7 @@
       state.intervalMinutes = clamp(event.target.value);
       save();
       render();
+      scheduleServerPush(getUnlockAt());
     });
 
     document.querySelectorAll("[data-quick]").forEach((button) => {
@@ -1141,6 +1247,7 @@
         state.intervalMinutes = clamp(button.dataset.quick);
         save();
         render();
+        scheduleServerPush(getUnlockAt());
       });
     });
 
@@ -1179,14 +1286,7 @@
       });
     });
 
-    document.querySelector("[data-notify]").addEventListener("click", async () => {
-      if (!("Notification" in window)) {
-        showNotice("Этот браузер не поддерживает уведомления.");
-        return;
-      }
-      const permission = await Notification.requestPermission();
-      showNotice(permission === "granted" ? "Уведомления включены." : "Уведомления не включены.");
-    });
+    document.querySelector("[data-notify]").addEventListener("click", enableNotifications);
 
     document.querySelector("[data-reset]").addEventListener("click", () => {
       if (!confirm("Сбросить таймер и весь журнал?")) return;
@@ -1199,6 +1299,7 @@
     });
 
     render();
+    warmUpPush();
     setInterval(render, 1000);
   </script>
 </body>
